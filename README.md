@@ -14,6 +14,7 @@ Install
 
 Usage 
 === 
+See `/examples/` folder for API useage examples.
 
 Features 
 ===
@@ -22,9 +23,13 @@ Features
 	- Shoot mode (Still, Movie, Audio, InvervalStill, Loop Recording)
 	- Still quality (RAW+JPEG, Fine, Standard)
 	- PostView size (2MP or Original)
-- Take & Save still pictures
+- Still picture shooting 
+- Continious shooting
 - Liveview via websocket (see examples folder for client) or raw JPEG bytestream
+- Event polling 
 
 Todo
 ===
-- Check camera is in correct mode before performing action (e.g. still mode before photo, movie mode before starting to record a movie)
+- Movie & Audio Recording
+- Loop recording
+- Set camera exposue/WB/Zoom/AF/Timer/Flsh/Program/Scene

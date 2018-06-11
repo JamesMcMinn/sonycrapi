@@ -21,7 +21,7 @@ var endpoints = struct {
 	AVContent endpoint
 }{"camera", "system", "avContent"}
 
-type Request struct {
+type request struct {
 	Camera   *Camera       `json:"-"`
 	Endpoint endpoint      `json:"-"`
 	Method   string        `json:"method"`
@@ -30,31 +30,51 @@ type Request struct {
 	ID       int           `json:"id"`
 }
 
-type Response struct {
+type response struct {
 	Result []json.RawMessage
 	Error  []interface{}
 	ID     int
 }
 
-func (c *Camera) newRequest(ep endpoint, method string, params ...interface{}) *Request {
+var versionMap = map[string]map[string]struct{}{
+	"1.1": map[string]struct{}{
+		"deleteContent": struct{}{},
+	},
+	"1.2": map[string]struct{}{
+		"getContentCount": struct{}{},
+	},
+	"1.3": map[string]struct{}{
+		"getContentList": struct{}{},
+		"getEvent":       struct{}{},
+	},
+}
+
+func (c *Camera) newRequest(ep endpoint, method string, params ...interface{}) *request {
 	c.requestID++
 
 	if len(params) == 0 {
 		params = []interface{}{}
 	}
 
-	return &Request{
+	version := "1.0"
+	for v, methods := range versionMap {
+		if _, found := methods[method]; found {
+			version = v
+		}
+	}
+
+	return &request{
 		Camera:   c,
 		Endpoint: ep,
 		Method:   method,
 		Params:   params,
-		Version:  "1.0",
+		Version:  version,
 		ID:       c.requestID,
 	}
 }
 
 // Do makes the actual REST API call and abtains the response and / or any errors
-func (r *Request) Do() (response *Response, err error) {
+func (r *request) Do() (cameraResp *response, err error) {
 	j, err := json.Marshal(r)
 	if err != nil {
 		return nil, err
@@ -68,25 +88,30 @@ func (r *Request) Do() (response *Response, err error) {
 		return nil, err
 	}
 
+	if resp.StatusCode != 200 {
+		err = fmt.Errorf("got %d HTTP status code, Expected 200", resp.StatusCode)
+		return
+	}
+
 	jresp, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
 
-	response = &Response{}
-	err = json.Unmarshal(jresp, response)
+	cameraResp = &response{}
+	err = json.Unmarshal(jresp, cameraResp)
 	if err != nil {
 		log.Println("JSON Error:", err)
 		log.Println(string(jresp))
 		return
 	}
 
-	if len(response.Error) > 1 {
+	if len(cameraResp.Error) > 1 {
 		fmt.Println(r.Params)
-		code := response.Error[0].(float64)
-		msg := response.Error[1].(string)
-		return response, fmt.Errorf("%f: %s", code, msg)
+		code := cameraResp.Error[0].(float64)
+		msg := cameraResp.Error[1].(string)
+		return cameraResp, fmt.Errorf("%f: %s", code, msg)
 	}
 
 	return

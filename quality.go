@@ -1,16 +1,20 @@
 package sonycrapi
 
 // StillQuality defines all possible quality levels for still photos
-var StillQuality = struct {
-	RAWJPG   string
-	Fine     string
-	Standard string
+type stillQuality string
+
+// StillQualities defines the possible qualities that can be passed
+// to the camera.
+var StillQualities = struct {
+	RAWJPG   stillQuality
+	Fine     stillQuality
+	Standard stillQuality
 }{"RAW+JPEG", "Fine", "Standard"}
 
 // SetStillQuality sets the quality for still photos taken by the camera.
 // The possible quality settings are defined in the StillQuality struct.
-func (c *Camera) SetStillQuality(stillQuality string) (err error) {
+func (c *Camera) SetStillQuality(quality stillQuality) (err error) {
 	_, err = c.newRequest(endpoints.Camera, "setStillQuality",
-		map[string]string{"stillQuality": stillQuality}).Do()
+		map[string]stillQuality{"stillQuality": quality}).Do()
 	return
 }

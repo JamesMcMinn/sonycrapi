@@ -2,6 +2,7 @@ package sonycrapi
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 )
 
@@ -26,7 +27,7 @@ type Camera struct {
 	}
 
 	// 3
-	LiveviewStatus bool `json:"liveviewStatus"`
+	LiveviewStatus bool `json:"liveviewStatus,string"`
 
 	// 4
 	LiveviewOrientation string `json:"liveviewOrientation"`
@@ -56,7 +57,7 @@ type Camera struct {
 	// 12
 	Function struct {
 		Current    string   `json:"currentCameraFunction"`
-		Candidates []string `json:cameraFunctionCandidates`
+		Candidates []string `json:"cameraFunctionCandidates"`
 	}
 
 	// 13
@@ -148,7 +149,7 @@ type Camera struct {
 	// 30 reserved by sony
 
 	// 31
-	IsShifted bool `json:"isShifted"`
+	IsShifted bool `json:"isShifted,string"`
 
 	// 32
 	ShutterSpeed struct {
@@ -220,8 +221,8 @@ type Camera struct {
 
 	// 43
 	InvtervalTime struct {
-		Current    string   `json:`
-		Candidates []string `json:`
+		Current    string   `json:"intervalTimeSec"`
+		Candidates []string `json:"candidate"`
 	}
 
 	// 44
@@ -308,8 +309,21 @@ func NewCamera(actionListURL string) *Camera {
 	}
 }
 
-func (c *Camera) Initilize() {
+// Initlize the camera for recording and start threads ongoing event polling
+func (c *Camera) Initilize() error {
+	c.UpdateState(false)
+	_, err := c.newRequest(endpoints.Camera, "startRecMode").Do()
 
+	go func() {
+		for {
+			err := c.UpdateState(true)
+			if err != nil {
+				log.Println(err)
+			}
+		}
+	}()
+
+	return err
 }
 
 func extractNonType(data json.RawMessage) json.RawMessage {
@@ -333,13 +347,18 @@ func extractNonType(data json.RawMessage) json.RawMessage {
 	return []byte("\"\"")
 }
 
-func (c *Camera) GetEventState() (err error) {
-	resp, err := c.newRequest(endpoints.Camera, "getEvent", false).Do()
+func (c *Camera) UpdateState(polling bool) (err error) {
+	resp, err := c.newRequest(endpoints.Camera, "getEvent", polling).Do()
 	if err != nil {
 		return
 	}
 
 	for i, data := range resp.Result {
+
+		if string(data) == "null" {
+			continue
+		}
+
 		switch i {
 		case 0:
 			err = json.Unmarshal(extractNonType(data), &c.AvailableAPIList)
@@ -352,7 +371,15 @@ func (c *Camera) GetEventState() (err error) {
 		case 4:
 			err = json.Unmarshal(extractNonType(data), &c.LiveviewOrientation)
 		case 5:
-		// TODO
+			continue // Sony reserved
+		case 6:
+			continue // Sony reserved
+		case 7:
+			continue // Sony reserved
+		case 8:
+			continue // Sony reserved
+		case 9:
+			continue // Sony reserved
 		case 10:
 			err = json.Unmarshal(data, &c.Storage)
 		case 11:
@@ -378,11 +405,11 @@ func (c *Camera) GetEventState() (err error) {
 		case 21:
 			err = json.Unmarshal(data, &c.ShootMode)
 		case 22:
-			// Reserved
+			continue // Sony reserved
 		case 23:
-			// Reserved
+			continue // Sony reserved
 		case 24:
-			// Reserved
+			continue // Sony reserved
 		case 25:
 			err = json.Unmarshal(data, &c.ExposureCompensation)
 		case 26:
@@ -394,7 +421,7 @@ func (c *Camera) GetEventState() (err error) {
 		case 29:
 			err = json.Unmarshal(data, &c.ISO)
 		case 30:
-			// Reserved
+			continue // Sony reserved
 		case 31:
 			err = json.Unmarshal(extractNonType(data), &c.IsShifted)
 		case 32:
@@ -430,17 +457,17 @@ func (c *Camera) GetEventState() (err error) {
 		case 45:
 			err = json.Unmarshal(data, &c.MovieFileFormat)
 		case 46:
-			//Reserved
+			continue // Sony reserved
 		case 47:
-			//Reserved
+			continue // Sony reserved
 		case 48:
-			//Reserved
+			continue // Sony reserved
 		case 49:
-			//Reserved
+			continue // Sony reserved
 		case 50:
-			//Reserved
+			continue // Sony reser/Reservedved
 		case 51:
-			//Reserved
+			continue // Sony reserved
 		case 52:
 			err = json.Unmarshal(data, &c.IRRemoteSetting)
 		case 53:
@@ -450,7 +477,7 @@ func (c *Camera) GetEventState() (err error) {
 		case 55:
 			err = json.Unmarshal(data, &c.TrackingFocusSetting)
 		case 56:
-			err = json.Unmarshal(data, &c.BatteryInfo)
+			err = json.Unmarshal(extractNonType(data), &c.BatteryInfo)
 		case 57:
 			err = json.Unmarshal(extractNonType(data), &c.RecordingTime)
 		case 58:
@@ -468,8 +495,11 @@ func (c *Camera) GetEventState() (err error) {
 		}
 
 		if err != nil {
-			log.Println(i, err)
+			log.Println(i, err, string(data))
 		}
+
+		fmt.Println(i, string(data))
+
 	}
 
 	return

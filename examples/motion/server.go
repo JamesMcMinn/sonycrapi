@@ -1,7 +1,9 @@
-package sonycrapi
+package main
 
 import (
+	"bytes"
 	"encoding/base64"
+	"image/jpeg"
 	"log"
 	"net/http"
 	"sync"
@@ -27,8 +29,15 @@ var upgrader = websocket.Upgrader{
 
 func fillFrameBuffers() {
 	for {
-		frame := <-liveviewFrames
-		b64 := []byte(base64.StdEncoding.EncodeToString(frame.JPEGData))
+		frame := <-diffFrames
+
+		buf := new(bytes.Buffer)
+		err := jpeg.Encode(buf, frame, nil)
+		if err != nil {
+			log.Println(err)
+		}
+
+		b64 := []byte(base64.StdEncoding.EncodeToString(buf.Bytes()))
 
 		lvConnLock.RLock()
 		for _, buffer := range liveviewConnections {

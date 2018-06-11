@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta name="viewport" content="width=320, initial-scale=1" />
+	<title>Photobooth</title>
+
+	<link href="/style.css" rel="stylesheet">
+	<script defer type="text/javascript" src='/websockets.js'></script>
+	<script defer type="text/javascript" src='/booth.js'></script>
+
+</head>
+
+<body>
+
+	<div id="countdown" class="hidden">
+	</div>
+
+	<div id="printing" class="hidden">
+		<div class="border">
+			<div class="center">
+			Printing something to help<br />you remember our day...
+		</div>
+		</div>
+	</div>
+
+	<div id="preview" class="hidden">
+
+		<div id="loading">
+			<div id="spinner" class="spinner"></div>
+			Developing your photo...
+		</div>
+
+		<div id="previewBorder" class="hidden">
+			<img id="previewPhoto" />
+		</div>
+
+		<div id="previewControls">
+			<div id="another" onclick="another()">
+				take another
+			</div>
+
+			<div id="print" onclick="print()">
+				print photo
+			</div>
+		</div>
+	</div>
+
+	<canvas id="videoCanvas">
+		<p>
+			Please use a browser that supports the Canvas Element, like
+			<a href="http://www.google.com/chrome">Chrome</a>,
+			<a href="http://www.mozilla.com/firefox/">Firefox</a>,
+			<a href="http://www.apple.com/safari/">Safari</a> or Internet Explorer 10
+		</p>
+	</canvas>
+
+	<div id="controls">
+		<div id="button" onclick="getReady()">
+			take photo
+		</div>
+	</div>
+
+</body>
+
+</html>

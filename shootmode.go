@@ -3,7 +3,7 @@ package sonycrapi
 import "encoding/json"
 
 // ShootMode defines a particualr shooting mode for the camera.
-// Instances shootmode can be foudn in the ShootModes variable for use
+// Instances shootmode can be found in the ShootModes variable for use
 // in SetShootMode()
 type ShootMode string
 
@@ -19,9 +19,9 @@ var ShootModes = struct {
 
 // SetShootMode sets the camera to the specified shoot mood.
 // All possible shoot modes are defined in the ShootMode sturct.
-func (c *Camera) SetShootMode(mode ShootMode) error {
-	_, err := c.newRequest(endpoints.Camera, "setShootMode", mode).Do()
-	return err
+func (c *Camera) SetShootMode(mode ShootMode) (err error) {
+	_, err = c.newRequest(endpoints.Camera, "setShootMode", mode).Do()
+	return
 }
 
 // GetShootMode returns the current shoot mode of the camera.
@@ -35,7 +35,7 @@ func (c *Camera) GetShootMode() (mode string, err error) {
 		err = json.Unmarshal(resp.Result[0], &mode)
 	}
 
-	return mode, err
+	return
 }
 
 // GetSupportedShootMode obtains the supported shooting modes for the camera

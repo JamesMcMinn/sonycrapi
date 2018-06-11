@@ -31,3 +31,4 @@ func (c *Camera) AwaitTakePicture() (urls []string, err error) {
 
 	return
 }
+
