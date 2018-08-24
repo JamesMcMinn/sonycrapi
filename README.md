@@ -8,6 +8,8 @@ More information about the API from Sony can be found [here](https://developer.s
 
 This has only been tested on my Sony NEX-6, and I cannot make any guarantees about other devices.
 
+**Disclaimer:** This was developed for so I could build a photbooth to use at my wedding (see examples/photobooth). It worked well, didn't crash, and I got married (yay!), however it does not implment the complete Sony Camera Remote API. I'll hopefully find time to complete the API implementation one day.
+
 Install
 ===
     go get -u github.com/JamesMcMinn/sonycrapi
